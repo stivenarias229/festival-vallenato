@@ -1,0 +1,95 @@
+---
+alwaysApply: true
+---
+
+# Mandatory Testing Workflow
+
+## General rules
+
+- Every time you create or modify application code, create or update
+  the corresponding automated tests.
+- This applies to backend, frontend, API endpoints, models, services,
+  views, forms, permissions, business logic and shared utilities.
+- Do not consider a task complete until the relevant tests have been
+  executed and their results reported.
+- Do not write tests that merely reproduce the implementation.
+  Verify the expected behavior and important edge cases.
+- Preserve existing tests and never delete or weaken assertions just
+  to make tests pass.
+- Never modify production code only to satisfy an incorrect test.
+- If existing tests fail, investigate whether the regression was
+  introduced by your changes before attempting a fix.
+
+## Required workflow
+
+For every implementation task:
+
+1. Inspect the existing project structure, dependencies, test
+   configuration and related tests.
+2. Identify the behavior being added or modified.
+3. Create or update tests for the expected behavior.
+4. Implement the change following the project's existing architecture.
+5. Run the relevant backend and/or frontend tests.
+6. If any test fails, analyze the actual error, fix the cause and
+   rerun the affected tests.
+7. Run the complete test suite when the change could affect other
+   features, shared components or application-wide behavior.
+8. Run relevant linting, type checks and build commands when available.
+9. Review the final changes and report what was tested, the commands
+   executed and the actual results.
+
+## Django backend
+
+- Use pytest and pytest-django if compatible with the existing project.
+- Otherwise, use Django's built-in test framework until migration
+  to another test runner is explicitly approved.
+- Add tests for models, services, views, permissions, validation,
+  business rules, error handling and database interactions as relevant.
+- Test successful cases, invalid inputs, unauthorized requests and
+  important boundary conditions.
+- Use isolated test data and the configured test database.
+- Never run tests against production data or the production database.
+- Never weaken security checks to make tests pass.
+
+## Vue.js frontend
+
+- Use the existing JavaScript or TypeScript setup.
+- Prefer Vitest and Vue Test Utils when compatible with the project.
+- Test component rendering, user interactions, emitted events,
+  conditional rendering, validation, loading states and error states.
+- Mock external APIs and unrelated dependencies where appropriate.
+- Test composables and business logic independently when practical.
+- Do not introduce a second testing framework without a clear reason.
+
+## Inertia.js integration
+
+- Test Django responses and the expected Inertia page component
+  and props using the project's existing integration approach.
+- Test validation errors, redirects and authentication behavior
+  when relevant.
+- Keep backend and frontend tests separate where appropriate.
+- Add integration or end-to-end tests for important complete user
+  flows when the existing infrastructure supports them.
+
+## Test execution
+
+- Discover the actual package manager, virtual environment,
+  project settings module and existing test scripts before running.
+- Run the most relevant tests first, then expand the test scope
+  according to the impact of the changes.
+- Never claim that tests passed if they were not executed successfully.
+- If execution is blocked by missing dependencies, database setup,
+  permissions or environment configuration, explain the blocker.
+- Do not silently skip failing tests or hide errors.
+- Do not make unrelated changes to force a successful test run.
+
+## Completion criteria
+
+Before finishing a coding task, report:
+- Files created or modified.
+- Tests created or updated.
+- Commands executed.
+- Number of passed, failed and skipped tests, when available.
+- Any remaining failures or limitations.
+
+A task is not fully verified until the relevant tests have run.

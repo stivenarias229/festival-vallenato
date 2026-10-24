@@ -1,0 +1,40 @@
+---
+description: Integración Django + Inertia + Vue 3 (vistas, props, formularios, errores)
+globs: **/*.py,**/*.vue,**/*.ts
+alwaysApply: false
+---
+
+# Cómo funciona este proyecto
+Django entrega cada pantalla con sus datos (props) mediante Inertia (`inertia-django`) y Vue 3 + TypeScript la dibuja (`@inertiajs/vue3`). Vite compila el frontend (puerto 5173 en desarrollo) y Django corre en el 8000.
+NO es una API REST: no hay DRF ni JWT. No crear endpoints JSON separados salvo que realmente se necesiten.
+
+## Flujo de una pantalla
+1. Ruta en `urls.py` (siempre con `name=`).
+2. Vista Django que prepara los datos y responde con Inertia (`render(request, "Carpeta/Pagina", props={...})`).
+3. Componente Vue de página con el mismo nombre, con sus props tipadas.
+
+## Vistas (Python)
+- No usar plantillas Django para pantallas; la única plantilla HTML es la base que monta Inertia.
+- Pasar como props solo datos serializables y estrictamente necesarios (dicts, listas, valores primitivos); nunca instancias de modelos ni campos sensibles (contraseñas, tokens, datos de otros usuarios).
+- Datos compartidos por todas las páginas (usuario autenticado, mensajes flash) mediante el mecanismo de datos compartidos de Inertia, no repetidos en cada vista.
+- Formularios: validar con `Form`/`ModelForm`. Si hay errores, devolverlos como `errors` a la misma página; si es exitoso, redirigir (patrón POST → Redirect).
+- Listados: paginar en el servidor y enviar la paginación como props.
+- Datos pesados u opcionales: cargarlos de forma diferida o con recargas parciales.
+- Autenticación con sesiones de Django y `login_required`; validar permisos en el servidor, nunca solo en Vue.
+
+## Páginas y componentes (Vue)
+- Solo `<script setup lang="ts">` y Composition API.
+- Tipar las props con `defineProps<...>()`; prohibido `any`.
+- Navegar con `<Link>` y `router` de `@inertiajs/vue3` (no `<a href>` ni `window.location`).
+- Formularios con `useForm` de Inertia; mostrar `form.errors` y `form.processing`.
+- Estilos con Tailwind CSS 4 (clases utilitarias); evitar CSS suelto salvo necesidad.
+- Contemplar estados de carga, error y vacío.
+
+## Contrato servidor ↔ página
+- Si cambian las props que envía una vista, actualizar en el mismo cambio la interfaz TypeScript y el componente de esa página.
+- Los nombres de props en `snake_case` tal como las envía Django, salvo que el proyecto defina otra convención.
+- No hardcodear URLs en Vue; usar las que entrega el servidor o rutas centralizadas.
+
+## Desarrollo
+- Levantar Django (`python manage.py runserver`) y Vite (`npm run dev`) en paralelo.
+- Antes de dar algo por terminado: tests de Python y `npm run lint` / build del frontend.

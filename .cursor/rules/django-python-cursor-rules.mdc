@@ -1,0 +1,51 @@
+---
+description: Convenciones Python/Django del backend (Django 5.2, MySQL, .env)
+globs: **/*.py
+alwaysApply: false
+---
+
+# Stack del backend
+Python 3.13, Django 5.2, MySQL con PyMySQL, configuración con python-dotenv (`.env`).
+NO usar ni sugerir: Django REST Framework, JWT, Celery, Redis, PostgreSQL ni campos exclusivos de PostgreSQL (ArrayField, HStore, SearchVector), salvo que se pida explícitamente.
+
+## Principios
+- Respuestas técnicas y precisas, con ejemplos de Django 5.2.
+- Usar las herramientas integradas de Django antes de agregar dependencias.
+- Seguir PEP 8; nombres descriptivos (snake_case en funciones y variables, PascalCase en clases).
+- Proyecto modular: una app de Django por dominio (separación de responsabilidades).
+- Cambios pequeños y enfocados; no refactorizar lo que no se pidió.
+
+## Django / Python
+- Vistas basadas en funciones para lógica simple; basadas en clases para lógica compleja.
+- Vistas delgadas: reciben la petición, validan, llaman a la lógica y devuelven la respuesta.
+- La lógica de negocio va en modelos, managers o `services.py`, no en las vistas.
+- Usar el ORM; evitar SQL crudo salvo necesidad de rendimiento (y siempre con parámetros).
+- Usar el modelo de usuario y la autenticación por sesión de Django (`login_required`, permisos).
+- Validar entradas con `Form` / `ModelForm`.
+- Tipado y docstrings en funciones públicas de servicios.
+
+## MySQL
+- Conexión vía PyMySQL (`pymysql.install_as_MySQLdb()` en el arranque) y charset `utf8mb4`.
+- Toda modificación de modelos va con su migración; revisar la migración generada y nunca editar migraciones ya aplicadas.
+- Definir índices para campos filtrados u ordenados con frecuencia; cuidar el largo de los `CharField` indexados.
+- Usar `transaction.atomic()` en operaciones que modifiquen varias tablas.
+
+## Configuración y seguridad
+- Secretos y credenciales (`SECRET_KEY`, DB, etc.) solo desde `.env`; nunca en el código. Mantener `.env.example` actualizado sin valores reales.
+- `DEBUG`, `ALLOWED_HOSTS` y orígenes confiables dependen del entorno.
+- Mantener activos CSRF, protección XSS y el ORM contra inyección SQL.
+- Con Inertia, configurar CSRF para que el frontend envíe el token (cookie `XSRF-TOKEN` y cabecera `X-XSRF-TOKEN`); verificar en la documentación de inertia-django.
+
+## Errores
+- Manejar excepciones esperadas en la vista o servicio y devolver errores de validación a la página.
+- Personalizar las páginas 404/500.
+- Usar `logging` (no `print`).
+
+## Rendimiento
+- Evitar N+1 con `select_related` / `prefetch_related`.
+- Paginar en el servidor los listados grandes; enviar solo los campos necesarios.
+- Usar `.only()` / `.values()` cuando no se necesite el objeto completo.
+
+## Pruebas
+- Tests con `pytest-django` o `django.test.TestCase`.
+- Cada vista nueva: caso exitoso, validación fallida y permisos.
