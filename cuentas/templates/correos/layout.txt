@@ -1,0 +1,9 @@
+{{ marca }}
+{{ titulo }}
+
+{{ mensaje }}
+{% if cta_url %}
+{{ cta_texto }}:
+{{ cta_url }}
+{% endif %}
+{{ nota }}

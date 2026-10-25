@@ -8,6 +8,7 @@
     },
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
+    "ignoreDeprecations": "6.0",
 
     /* Linting */
     "noUnusedLocals": true,
@@ -15,5 +16,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["src/**/*.spec.ts"]
 }

@@ -1,0 +1,1 @@
+# El panel de producto vive en Vue. Este admin no se usa como interfaz.

@@ -1,1 +1,228 @@
 @import "tailwindcss";
+@import "@fontsource/fraunces/500.css";
+@import "@fontsource/fraunces/600.css";
+@import "@fontsource/fraunces/700.css";
+@import "@fontsource/fraunces/500-italic.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/700.css";
+@import "@fontsource/manrope/800.css";
+
+@theme {
+  --color-bg: #0d0a14;
+  --color-s1: #171220;
+  --color-s2: #201a2c;
+  --color-ln: #ffffff1a;
+  --color-gold: #e2b75f;
+  --color-gold-2: #f5dc9a;
+  --color-ember: #e0573b;
+  --color-ivory: #f6eedf;
+  --color-mut: #a99fb6;
+  --color-jade: #45bfa8;
+  --color-ink: #1a1205;
+  --color-night: #07050b;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-serif: "Fraunces", Georgia, serif;
+}
+
+@layer base {
+  html {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  body {
+    @apply bg-night font-sans text-[15px] font-medium leading-[1.5] text-ivory;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  .aurora {
+    background:
+      radial-gradient(60% 50% at 12% 8%, #5b2a6b66, transparent),
+      radial-gradient(50% 45% at 92% 88%, #a2412b55, transparent);
+  }
+
+  .app-halo {
+    background:
+      radial-gradient(120% 50% at 50% -8%, #3a2146, transparent 62%),
+      var(--color-bg);
+  }
+
+  .mini {
+    display: inline-flex;
+    min-height: 44px;
+    min-width: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 10px;
+    border: 1px solid var(--color-ln);
+    background: #ffffff0d;
+    color: var(--color-ivory);
+    padding: 7px 10px;
+    font: 700 12px Manrope, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .field {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--color-ln);
+    background: #ffffff0a;
+    color: var(--color-ivory);
+    padding: 14px;
+  }
+
+  .field:focus,
+  .field:focus-visible {
+    outline: 0;
+    border-color: var(--color-gold);
+    box-shadow: 0 0 0 3px #e2b75f26;
+  }
+
+  select.field {
+    color-scheme: dark;
+  }
+
+  select.field option {
+    background-color: #201a2c;
+    color: #f6eedf;
+  }
+
+  input[type="datetime-local"].field,
+  input[type="date"].field {
+    color-scheme: dark;
+    position: relative;
+    min-height: 52px;
+  }
+
+  input[type="datetime-local"].field::-webkit-calendar-picker-indicator,
+  input[type="date"].field::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .band {
+    height: 8px;
+    opacity: 0.5;
+    background:
+      linear-gradient(135deg, var(--color-gold) 25%, transparent 25%) -4px 0 / 8px 8px,
+      linear-gradient(225deg, var(--color-gold) 25%, transparent 25%) -4px 0 / 8px 8px,
+      linear-gradient(315deg, var(--color-gold) 25%, transparent 25%) 0 0 / 8px 8px,
+      linear-gradient(45deg, var(--color-gold) 25%, transparent 25%) 0 0 / 8px 8px;
+  }
+
+  .card-line::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+    opacity: 0.6;
+  }
+
+  .ticket-bars {
+    width: 120px;
+    height: 28px;
+    opacity: 0.7;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-ivory) 0 2px,
+      transparent 2px 4px,
+      var(--color-ivory) 4px 5px,
+      transparent 5px 9px
+    );
+  }
+
+  .bellows {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: bellows-breathe 4.5s ease-in-out infinite;
+  }
+
+  .success-ring circle,
+  .success-ring path {
+    stroke-dashoffset: 0;
+  }
+
+  .success-ring circle {
+    stroke-dasharray: 314;
+    animation: draw-stroke 1s 0.1s both;
+  }
+
+  .success-ring path {
+    stroke-dasharray: 70;
+    animation: draw-stroke 0.6s 0.9s both;
+  }
+}
+
+@keyframes bellows-breathe {
+  50% {
+    transform: scaleX(0.93);
+  }
+}
+
+@keyframes draw-stroke {
+  from {
+    stroke-dashoffset: inherit;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toast-enter 0.35s ease-out;
+}
+
+.success-ring circle {
+  stroke-dashoffset: 314;
+}
+
+.success-ring path {
+  stroke-dashoffset: 70;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bellows,
+  .toast-enter,
+  .success-ring circle,
+  .success-ring path {
+    animation: none !important;
+  }
+
+  .success-ring circle,
+  .success-ring path {
+    stroke-dashoffset: 0;
+  }
+}
