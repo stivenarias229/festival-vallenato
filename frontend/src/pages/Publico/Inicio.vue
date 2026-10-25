@@ -5,6 +5,7 @@ export default { layout: AppLayout }
 </script>
 
 <script setup lang="ts">
+import { computed } from "vue"
 import { Head, usePage } from "@inertiajs/vue3"
 
 import AccordionHero from "@/components/AccordionHero.vue"
@@ -14,6 +15,7 @@ import MochilaBand from "@/components/MochilaBand.vue"
 import PageHeader from "@/components/PageHeader.vue"
 
 const page = usePage()
+const sesionActiva = computed(() => Boolean(page.props.auth?.user))
 const pasos = [
   "Crea tu cuenta o inicia sesión",
   "Escoge una categoría",
@@ -43,7 +45,9 @@ const pasos = [
         Explorar votaciones
         <Icon name="chevron" :size="20" />
       </Button>
-      <Button variant="secondary" :href="page.props.urls.registro">Crear mi cuenta</Button>
+      <Button v-if="!sesionActiva" variant="secondary" :href="page.props.urls.registro">
+        Crear mi cuenta
+      </Button>
     </section>
     <section class="lg:block">
       <AccordionHero class="hidden lg:block" />

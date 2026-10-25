@@ -12,6 +12,16 @@ def test_inicio_y_categorias_props(client, catalogo_abierto):
 
 
 @pytest.mark.django_db
+def test_inicio_comparte_si_hay_sesion(client, usuario_votante):
+    anonimo = client.get(reverse("inicio"), HTTP_X_INERTIA="true")
+    assert anonimo.json()["props"]["auth"]["user"] is None
+
+    client.force_login(usuario_votante)
+    autenticado = client.get(reverse("inicio"), HTTP_X_INERTIA="true")
+    assert autenticado.json()["props"]["auth"]["user"]["id"] == usuario_votante.pk
+
+
+@pytest.mark.django_db
 def test_votaciones_filtradas_por_categoria(client, catalogo_abierto):
     response = client.get(
         reverse("categoria_votaciones", args=[catalogo_abierto["categoria"].pk]),
