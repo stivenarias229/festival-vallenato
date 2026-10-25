@@ -174,7 +174,10 @@ def votaciones(request):
             )
             votacion.save(update_fields=["estado"])
             registrar_auditoria(request.user, f"{accion}_votacion", "votacion", votacion.titulo)
-            messages.success(request, f"Votación {accion}da.")
+            messages.success(
+                request,
+                "Votación abierta." if accion == "abrir" else "Votación cerrada.",
+            )
             return redirect("panel_votaciones")
     return render(
         request,

@@ -1,11 +1,16 @@
 from datetime import timedelta
 
 import pytest
+from django.contrib.messages import get_messages
 from django.urls import reverse
 from django.utils import timezone
 
 from auditoria.models import Auditoria
 from catalogo.models import Votacion
+
+
+def _mensajes(response):
+    return [str(item) for item in get_messages(response.wsgi_request)]
 
 
 @pytest.mark.django_db
@@ -32,3 +37,18 @@ def test_abrir_votacion_queda_auditado(client, usuario_admin, catalogo_abierto):
         {"accion": "cerrar", "id": catalogo_abierto["votacion"].pk},
     )
     assert Auditoria.objects.filter(accion="cerrar_votacion").exists()
+
+
+@pytest.mark.django_db
+def test_toast_al_abrir_y_cerrar_esta_bien_escrito(client, usuario_admin, catalogo_abierto):
+    votacion = catalogo_abierto["votacion"]
+    client.force_login(usuario_admin)
+
+    cerrar = client.post(reverse("panel_votaciones"), {"accion": "cerrar", "id": votacion.pk})
+    assert "Votación cerrada." in _mensajes(cerrar)
+    assert "cerrarda" not in " ".join(_mensajes(cerrar))
+
+    abrir = client.post(reverse("panel_votaciones"), {"accion": "abrir", "id": votacion.pk})
+    assert "Votación abierta." in _mensajes(abrir)
+    assert "abrida" not in " ".join(_mensajes(abrir))
+    assert "abrirda" not in " ".join(_mensajes(abrir))
