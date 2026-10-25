@@ -60,6 +60,10 @@
       var(--color-bg);
   }
 
+  .app-btn-stack + .app-btn-stack {
+    margin-top: 12px;
+  }
+
   .mini {
     display: inline-flex;
     min-height: 44px;

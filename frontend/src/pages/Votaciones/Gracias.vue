@@ -39,10 +39,12 @@ const page = usePage()
         <i>Pendiente de validación, P-04.</i>
       </p>
     </div>
-    <Button v-if="puede_ver_resultados" class="mt-3" :href="`/votaciones/${votacion.id}/resultados`">
-      Ver resultados
-    </Button>
-    <Button :href="page.props.urls.categorias">Votar en otra categoría</Button>
-    <Button variant="secondary" :href="page.props.urls.inicio">Volver al inicio</Button>
+    <div class="mt-4">
+      <Button v-if="puede_ver_resultados" :href="`/votaciones/${votacion.id}/resultados`">
+        Ver resultados
+      </Button>
+      <Button :href="page.props.urls.categorias">Votar en otra categoría</Button>
+      <Button variant="secondary" :href="page.props.urls.inicio">Volver al inicio</Button>
+    </div>
   </main>
 </template>

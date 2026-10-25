@@ -65,6 +65,6 @@ const atajos = [
     <p class="mt-4 rounded-[14px] border border-dashed border-gold/35 bg-gold/5 px-3 py-2.5 text-[12.5px] text-mut">
       Registro de actividad: RF-16.
     </p>
-    <Button variant="secondary" :href="page.props.urls.salir">Cerrar sesión</Button>
+    <Button class="mt-3" variant="secondary" :href="page.props.urls.salir">Cerrar sesión</Button>
   </main>
 </template>

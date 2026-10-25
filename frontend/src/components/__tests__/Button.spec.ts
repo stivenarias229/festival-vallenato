@@ -22,4 +22,22 @@ describe("Button", () => {
     expect(wrapper.get("button").attributes("disabled")).toBeUndefined()
     expect(wrapper.get("button").attributes("aria-busy")).toBeUndefined()
   })
+
+  it("separa botones apilados de ancho completo", () => {
+    const wrapper = mount({
+      components: { Button },
+      template: "<div><Button>Uno</Button><Button>Dos</Button></div>",
+    })
+    const botones = wrapper.findAll("button")
+    expect(botones[0].classes()).toContain("app-btn-stack")
+    expect(botones[1].classes()).toContain("app-btn-stack")
+  })
+
+  it("no apila con margen los botones mini de una misma fila", () => {
+    const wrapper = mount(Button, {
+      props: { size: "mini" },
+      slots: { default: "Abrir" },
+    })
+    expect(wrapper.get("button").classes()).not.toContain("app-btn-stack")
+  })
 })

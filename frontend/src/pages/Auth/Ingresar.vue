@@ -51,6 +51,8 @@ const submit = () => form.post(page.props.urls.ingresar)
         ¿Olvidaste tu contraseña?
       </Link>
     </p>
-    <Button variant="secondary" :href="page.props.urls.registro">Crear cuenta nueva</Button>
+    <div class="mt-3">
+      <Button variant="secondary" :href="page.props.urls.registro">Crear cuenta nueva</Button>
+    </div>
   </main>
 </template>

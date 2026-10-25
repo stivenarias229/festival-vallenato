@@ -28,10 +28,10 @@ const bloqueado = computed(() => props.disabled || props.loading)
     :aria-busy="loading || undefined"
     :aria-disabled="bloqueado || undefined"
     :class="[
-      'inline-flex items-center justify-center gap-2 no-underline transition-transform',
+      'app-btn inline-flex items-center justify-center gap-2 no-underline transition-transform',
       size === 'mini'
         ? 'min-h-11 min-w-11 w-auto rounded-[10px] px-2.5 py-1.5 text-xs font-bold tracking-normal'
-        : 'min-h-11 w-full rounded-[15px] px-4 py-3.5 text-[15px] font-extrabold tracking-[0.03em]',
+        : 'app-btn-stack min-h-11 w-full rounded-[15px] px-4 py-3.5 text-[15px] font-extrabold tracking-[0.03em]',
       variant === 'primary' &&
         'bg-linear-to-b from-gold-2 to-[#d8a23f] text-ink shadow-[0_10px_26px_#e2b75f3a,inset_0_1px_0_#fff7]',
       variant === 'secondary' && 'border border-white/30 bg-white/5 text-ivory shadow-none',
