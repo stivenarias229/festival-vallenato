@@ -5,20 +5,27 @@ export default { layout: AdminLayout }
 </script>
 
 <script setup lang="ts">
-import { Head, router, usePage } from "@inertiajs/vue3"
+import { Head, usePage } from "@inertiajs/vue3"
+import Column from "primevue/column"
+import DataTable from "primevue/datatable"
 
 import MochilaBand from "@/components/MochilaBand.vue"
 import PageHeader from "@/components/PageHeader.vue"
-import Pagination from "@/components/Pagination.vue"
-import FormField from "@/components/FormField.vue"
 import SelectField from "@/components/SelectField.vue"
 import Switch from "@/components/Switch.vue"
-import UserFilters from "@/components/UserFilters.vue"
 import { useServerAction } from "@/composables/useServerAction"
+import { useTablaServidor, type ConsultaTabla, type PaginacionTabla } from "@/composables/useTablaServidor"
 
 const rolesUsuario = [
   { value: "votante", label: "Votante" },
   { value: "administrador", label: "Administrador" },
+]
+
+const filtroRol = [{ value: "", label: "Todos" }, ...rolesUsuario]
+const filtroEstado = [
+  { value: "", label: "Todos" },
+  { value: "activo", label: "Activo" },
+  { value: "bloqueado", label: "Bloqueado" },
 ]
 
 type Usuario = {
@@ -33,32 +40,37 @@ type Usuario = {
 
 const props = defineProps<{
   usuarios: Usuario[]
-  filtro: string
-  q: string
-  paginacion: {
-    number: number
-    num_pages: number
-    count: number
-    has_next: boolean
-    has_previous: boolean
-    next_page: number | null
-    previous_page: number | null
-  }
+  paginacion: PaginacionTabla
+  consulta: ConsultaTabla
 }>()
 
 const page = usePage()
 const yo = page.props.auth.user
-
 const { processing, isBusy, post } = useServerAction()
-
-const consultar = (params: Record<string, string | number>) => {
-  router.get(page.props.urls.panel_usuarios, params, { preserveState: true, replace: true })
-}
+const {
+  cargando,
+  q,
+  first,
+  sortField,
+  sortOrder,
+  buscar,
+  onPage,
+  onSort,
+  hrefExportar,
+  filtrar,
+} = useTablaServidor({
+  url: () => page.props.urls.panel_usuarios,
+  only: ["usuarios", "paginacion", "consulta"],
+  consulta: () => props.consulta,
+  paginacion: () => props.paginacion,
+  filtros: ["rol", "estado"],
+  filtrosTexto: [],
+})
 
 const actualizar = (usuario: Usuario, cambios: Partial<Usuario>) => {
   if (yo && usuario.id === yo.id) return
   post(
-    page.props.urls.panel_usuarios,
+    page.url,
     {
       id: usuario.id,
       rol: cambios.rol ?? usuario.rol,
@@ -67,12 +79,6 @@ const actualizar = (usuario: Usuario, cambios: Partial<Usuario>) => {
     `usuario-${usuario.id}`,
   )
 }
-
-const links = Array.from({ length: props.paginacion.num_pages }, (_, index) => ({
-  url: `${page.props.urls.panel_usuarios}?filtro=${props.filtro}&q=${props.q}&page=${index + 1}`,
-  label: String(index + 1),
-  active: props.paginacion.number === index + 1,
-}))
 </script>
 
 <template>
@@ -80,82 +86,86 @@ const links = Array.from({ length: props.paginacion.num_pages }, (_, index) => (
   <PageHeader title="Usuarios" :back-href="page.props.urls.panel" admin />
   <MochilaBand />
   <main class="flex-1 px-[18px] pt-4 pb-8">
-    <UserFilters
-      :q="q"
-      :filtro="filtro"
-      @buscar="(valor) => consultar({ q: valor, filtro })"
-      @filtrar="(valor) => consultar({ q, filtro: valor })"
-    />
-    <div class="mt-4 hidden overflow-x-auto lg:block">
-      <table class="w-full text-left text-sm">
-        <thead class="text-mut">
-          <tr>
-            <th class="p-3">Nombre</th>
-            <th class="p-3">Correo</th>
-            <th class="p-3">Rol</th>
-            <th class="p-3">Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="usuario in usuarios" :key="usuario.id" class="border-t border-ln">
-            <td class="p-3 font-serif">{{ usuario.nombre }}</td>
-            <td class="p-3 text-mut">{{ usuario.email }}</td>
-            <td class="p-3">
-              <SelectField
-                compact
-                :model-value="usuario.rol"
-                :options="rolesUsuario"
-                :disabled="yo?.id === usuario.id || processing"
-                @update:model-value="(rol) => actualizar(usuario, { rol: String(rol) })"
-              />
-            </td>
-            <td class="p-3">
-              <Switch
-                :model-value="usuario.estado === 'activo'"
-                :disabled="yo?.id === usuario.id || processing"
-                :loading="isBusy(`usuario-${usuario.id}`)"
-                @update:model-value="actualizar(usuario, { estado: $event ? 'activo' : 'bloqueado' })"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="lg:hidden">
-      <div
-        v-for="usuario in usuarios"
-        :key="usuario.id"
-        class="my-2.5 flex items-center gap-3 rounded-2xl border border-ln bg-linear-to-[160deg] from-s2 to-s1 px-3.5 py-3"
-      >
-        <div class="grid size-11 place-items-center rounded-full bg-linear-to-br from-gold-2 to-ember font-serif text-lg text-ink">
-          {{ usuario.nombre.slice(0, 1) }}
-        </div>
-        <div class="min-w-0 flex-1">
-          <b class="block font-serif text-[17px] font-semibold">{{ usuario.nombre }}</b>
-          <small class="text-mut">{{ usuario.email }}</small>
-          <FormField compact class="mt-2" label="Rol" :for-id="`usuario-rol-${usuario.id}`">
-            <SelectField
-              compact
-              :id="`usuario-rol-${usuario.id}`"
-              :model-value="usuario.rol"
-              :options="rolesUsuario"
-              :disabled="yo?.id === usuario.id || processing"
-              @update:model-value="(rol) => actualizar(usuario, { rol: String(rol) })"
-            />
-          </FormField>
-        </div>
-        <div class="w-16 text-center text-[11px] text-mut">
-          <Switch
-            :model-value="usuario.estado === 'activo'"
-            :disabled="yo?.id === usuario.id || processing"
-            :loading="isBusy(`usuario-${usuario.id}`)"
-            @update:model-value="actualizar(usuario, { estado: $event ? 'activo' : 'bloqueado' })"
-          />
-          <span>{{ usuario.estado === "activo" ? "Activo" : "Bloqueado" }}</span>
-        </div>
+    <div class="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div class="barra-listado min-w-0 flex-1">
+        <input
+          :value="q"
+          class="field barra-filtro"
+          type="search"
+          placeholder="Buscar"
+          aria-label="Buscar"
+          @input="buscar(($event.target as HTMLInputElement).value)"
+        />
+        <SelectField
+          class="barra-filtro"
+          aria-label="Filtrar por rol"
+          :model-value="consulta.filtros.rol ?? ''"
+          :options="filtroRol"
+          @update:model-value="(valor) => filtrar('rol', valor)"
+        />
+        <SelectField
+          class="barra-filtro"
+          aria-label="Filtrar por estado"
+          :model-value="consulta.filtros.estado ?? ''"
+          :options="filtroEstado"
+          @update:model-value="(valor) => filtrar('estado', valor)"
+        />
+      </div>
+      <div class="flex shrink-0 flex-wrap gap-2">
+        <a class="mini" :href="hrefExportar(page.props.urls.panel_usuarios_exportar, 'csv')">CSV</a>
+        <a class="mini" :href="hrefExportar(page.props.urls.panel_usuarios_exportar, 'xlsx')">Excel</a>
       </div>
     </div>
-    <Pagination :links="links" />
+    <DataTable
+      class="mt-4"
+      :value="usuarios"
+      lazy
+      paginator
+      data-key="id"
+      scrollable
+      removable-sort
+      table-style="min-width: 720px"
+      :rows="paginacion.per_page"
+      :first="first"
+      :total-records="paginacion.count"
+      :rows-per-page-options="[10, 25, 50]"
+      :loading="cargando"
+      :sort-field="sortField"
+      :sort-order="sortOrder"
+      current-page-report-template="{first}–{last} de {totalRecords}"
+      paginator-template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+      @page="onPage"
+      @sort="onSort"
+    >
+      <template #empty>No hay resultados.</template>
+      <Column field="nombre" header="Nombre" sortable>
+        <template #body="{ data }">
+          <span class="font-serif">{{ data.nombre }}</span>
+        </template>
+      </Column>
+      <Column field="email" header="Correo" sortable />
+      <Column field="rol" header="Rol" sortable>
+        <template #body="{ data }">
+          <SelectField
+            compact
+            :model-value="data.rol"
+            :options="rolesUsuario"
+            :disabled="yo?.id === data.id || processing"
+            @update:model-value="(rol) => actualizar(data, { rol: String(rol) })"
+          />
+        </template>
+      </Column>
+      <Column field="estado" header="Estado" sortable>
+        <template #body="{ data }">
+          <Switch
+            :model-value="data.estado === 'activo'"
+            :disabled="yo?.id === data.id || processing"
+            :loading="isBusy(`usuario-${data.id}`)"
+            @update:model-value="actualizar(data, { estado: $event ? 'activo' : 'bloqueado' })"
+          />
+        </template>
+      </Column>
+    </DataTable>
     <p class="mt-4 rounded-[14px] border border-dashed border-gold/35 bg-gold/5 px-3 py-2.5 text-[12.5px] text-mut">
       Un usuario con votos no se elimina: solo se bloquea. El administrador no ve contraseñas. RF-17 · RF-18.
     </p>

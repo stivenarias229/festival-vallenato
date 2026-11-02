@@ -50,6 +50,20 @@ describe("SelectField", () => {
     expect(document.querySelector("[role=listbox]")).toBeNull()
   })
 
+  it("usa el mismo campo que el resto del formulario si no es compacto", () => {
+    montar()
+    expect(wrapper?.get("button").classes()).toContain("field")
+    expect(wrapper?.get("button").classes()).not.toContain("py-2")
+    wrapper?.unmount()
+    montar({ compact: true })
+    expect(wrapper?.get("button").classes()).toContain("py-2")
+  })
+
+  it("pone la etiqueta accesible en el disparador", () => {
+    montar({ ariaLabel: "Filtrar por estado" })
+    expect(wrapper?.get("button").attributes("aria-label")).toBe("Filtrar por estado")
+  })
+
   it("no abre el listado si está deshabilitado", async () => {
     montar({ disabled: true })
     await wrapper?.get("button").trigger("click")

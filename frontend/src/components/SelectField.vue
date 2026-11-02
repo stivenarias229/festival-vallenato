@@ -14,8 +14,9 @@ const props = withDefaults(
     placeholder?: string
     compact?: boolean
     id?: string
+    ariaLabel?: string
   }>(),
-  { disabled: false, placeholder: "Selecciona", compact: false },
+  { disabled: false, placeholder: "Selecciona", compact: false, ariaLabel: undefined },
 )
 
 const listId = useId()
@@ -78,7 +79,7 @@ onUnmounted(cerrar)
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative min-w-0">
     <button
       :id="id"
       ref="disparador"
@@ -86,6 +87,7 @@ onUnmounted(cerrar)
       class="field flex items-center justify-between gap-2 text-left disabled:pointer-events-none disabled:opacity-35"
       :class="compact ? 'w-auto min-w-[11rem] py-2 text-xs' : 'w-full'"
       :disabled="disabled"
+      :aria-label="ariaLabel"
       :aria-expanded="abierto"
       :aria-controls="listId"
       aria-haspopup="listbox"

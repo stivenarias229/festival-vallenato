@@ -1,6 +1,4 @@
 from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from inertia import render
@@ -19,21 +17,17 @@ from cuentas.permissions import requiere_administrador
 from votaciones.models import Voto
 
 from .forms import CategoriaForm, EdicionForm, OpcionForm, UsuarioAdminForm, VotacionForm
+from .listados import (
+    exportar_tabla,
+    filas_actividad,
+    filas_usuarios,
+    filas_votaciones,
+    paginar,
+    queryset_actividad,
+    queryset_usuarios,
+    queryset_votaciones,
+)
 from .services import reordenar_opcion
-
-
-def _pagina(queryset, request, por_pagina=10):
-    paginator = Paginator(queryset, por_pagina)
-    page = paginator.get_page(request.GET.get("page"))
-    return page, {
-        "number": page.number,
-        "num_pages": paginator.num_pages,
-        "count": paginator.count,
-        "has_next": page.has_next(),
-        "has_previous": page.has_previous(),
-        "next_page": page.next_page_number() if page.has_next() else None,
-        "previous_page": page.previous_page_number() if page.has_previous() else None,
-    }
 
 
 @requiere_administrador
@@ -163,12 +157,12 @@ def votaciones(request):
                 messages.success(request, "Votación guardada.")
             else:
                 messages.error(request, form.non_field_errors().as_text() or "Revisa los datos.")
-            return redirect("panel_votaciones")
+            return redirect(request.get_full_path())
         if accion in {"abrir", "cerrar"}:
             votacion = get_object_or_404(Votacion, pk=request.POST.get("id"))
             if accion == "abrir" and not votacion.opciones.exists():
                 messages.error(request, "No puedes abrir una votación sin opciones.")
-                return redirect("panel_votaciones")
+                return redirect(request.get_full_path())
             votacion.estado = (
                 Votacion.Estado.ABIERTA if accion == "abrir" else Votacion.Estado.CERRADA
             )
@@ -178,7 +172,9 @@ def votaciones(request):
                 request,
                 "Votación abierta." if accion == "abrir" else "Votación cerrada.",
             )
-            return redirect("panel_votaciones")
+            return redirect(request.get_full_path())
+    queryset, consulta = queryset_votaciones(request)
+    page, paginacion = paginar(queryset, request)
     return render(
         request,
         "Panel/Votaciones",
@@ -190,10 +186,15 @@ def votaciones(request):
             "votaciones": [
                 votacion_payload(
                     item,
-                    extra={"opciones_count": item.opciones.count()},
+                    extra={
+                        "opciones_count": item.opciones_count,
+                        "categoria_nombre": item.categoria.nombre,
+                    },
                 )
-                for item in Votacion.objects.select_related("categoria").prefetch_related("opciones")
+                for item in page
             ],
+            "paginacion": paginacion,
+            "consulta": consulta,
         },
     )
 
@@ -254,7 +255,7 @@ def usuarios(request):
         objetivo = get_object_or_404(Usuario, pk=request.POST.get("id"))
         if objetivo.pk == request.user.pk:
             messages.error(request, "No puedes bloquearte ni cambiarte el rol a ti mismo.")
-            return redirect("panel_usuarios")
+            return redirect(request.get_full_path())
         form = UsuarioAdminForm(request.POST)
         if form.is_valid():
             objetivo.rol = form.cleaned_data["rol"]
@@ -267,20 +268,10 @@ def usuarios(request):
                 f"{objetivo.email} → {objetivo.rol}/{objetivo.estado}",
             )
             messages.success(request, "Usuario actualizado.")
-        return redirect("panel_usuarios")
+        return redirect(request.get_full_path())
 
-    filtro = request.GET.get("filtro", "todos")
-    q = request.GET.get("q", "").strip()
-    queryset = Usuario.objects.annotate(votos_count=Count("votos")).order_by("-date_joined")
-    if q:
-        queryset = queryset.filter(Q(nombre__icontains=q) | Q(email__icontains=q))
-    if filtro == "votante":
-        queryset = queryset.filter(rol=Usuario.Rol.VOTANTE)
-    elif filtro == "administrador":
-        queryset = queryset.filter(rol=Usuario.Rol.ADMINISTRADOR)
-    elif filtro == "bloqueados":
-        queryset = queryset.filter(estado=Usuario.Estado.BLOQUEADO)
-    page, paginacion = _pagina(queryset, request, 8)
+    queryset, consulta = queryset_usuarios(request)
+    page, paginacion = paginar(queryset, request)
     return render(
         request,
         "Panel/Usuarios",
@@ -297,20 +288,16 @@ def usuarios(request):
                 }
                 for item in page
             ],
-            "filtro": filtro,
-            "q": q,
             "paginacion": paginacion,
+            "consulta": consulta,
         },
     )
 
 
 @requiere_administrador
 def actividad(request):
-    page, paginacion = _pagina(
-        Auditoria.objects.select_related("usuario"),
-        request,
-        15,
-    )
+    queryset, consulta = queryset_actividad(request)
+    page, paginacion = paginar(queryset, request)
     return render(
         request,
         "Panel/Actividad",
@@ -328,5 +315,62 @@ def actividad(request):
                 for item in page
             ],
             "paginacion": paginacion,
+            "consulta": consulta,
         },
+    )
+
+
+@requiere_administrador
+def exportar_usuarios(request):
+    queryset, _consulta = queryset_usuarios(request)
+    return exportar_tabla(
+        request,
+        queryset,
+        columnas=["nombre", "correo", "rol", "estado", "fecha de registro", "tiene votos"],
+        filas=filas_usuarios,
+        nombre="usuarios",
+        accion="exportar_usuarios",
+        entidad="usuario",
+        detalle="Exportó el listado de usuarios",
+        volver="panel_usuarios",
+    )
+
+
+@requiere_administrador
+def exportar_actividad(request):
+    queryset, _consulta = queryset_actividad(request)
+    return exportar_tabla(
+        request,
+        queryset,
+        columnas=["fecha", "acción", "entidad", "quién", "correo", "detalle"],
+        filas=filas_actividad,
+        nombre="actividad",
+        accion="exportar_actividad",
+        entidad="auditoria",
+        detalle="Exportó la bitácora",
+        volver="panel_actividad",
+    )
+
+
+@requiere_administrador
+def exportar_votaciones(request):
+    queryset, _consulta = queryset_votaciones(request)
+    return exportar_tabla(
+        request,
+        queryset,
+        columnas=[
+            "título",
+            "categoría",
+            "inicio",
+            "cierre",
+            "estado guardado",
+            "estado visible",
+            "cantidad de opciones",
+        ],
+        filas=filas_votaciones,
+        nombre="votaciones",
+        accion="exportar_votaciones",
+        entidad="votacion",
+        detalle="Exportó el listado de votaciones",
+        volver="panel_votaciones",
     )

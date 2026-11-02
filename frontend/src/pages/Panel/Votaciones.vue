@@ -7,6 +7,8 @@ export default { layout: AdminLayout }
 <script setup lang="ts">
 import { ref } from "vue"
 import { Head, Link, useForm, usePage } from "@inertiajs/vue3"
+import Column from "primevue/column"
+import DataTable from "primevue/datatable"
 
 import Button from "@/components/Button.vue"
 import Icon from "@/components/Icon.vue"
@@ -17,11 +19,21 @@ import FormField from "@/components/FormField.vue"
 import SelectField from "@/components/SelectField.vue"
 import StatusPill from "@/components/StatusPill.vue"
 import { useServerAction } from "@/composables/useServerAction"
+import { useTablaServidor, type ConsultaTabla, type PaginacionTabla } from "@/composables/useTablaServidor"
+
+const filtroEstado = [
+  { value: "", label: "Todos" },
+  { value: "borrador", label: "Borrador" },
+  { value: "proxima", label: "Próxima" },
+  { value: "abierta", label: "Abierta" },
+  { value: "cerrada", label: "Cerrada" },
+]
 
 type Votacion = {
   id: number
   titulo: string
   categoria_id: number
+  categoria_nombre: string
   fecha_inicio: string
   fecha_fin: string
   estado: string
@@ -30,11 +42,14 @@ type Votacion = {
   visibilidad_resultados: string
   limite_votos_por_usuario: number
   resumen_fecha: string
+  opciones_count: number
 }
 
 const props = defineProps<{
   categorias: Array<{ id: number; nombre: string }>
   votaciones: Votacion[]
+  paginacion: PaginacionTabla
+  consulta: ConsultaTabla
 }>()
 
 const page = usePage()
@@ -66,9 +81,28 @@ const editar = (votacion: Votacion) => {
 }
 
 const { processing: accionProcessing, isBusy, post } = useServerAction()
+const {
+  cargando,
+  q,
+  first,
+  sortField,
+  sortOrder,
+  buscar,
+  onPage,
+  onSort,
+  hrefExportar,
+  filtrar,
+} = useTablaServidor({
+  url: () => page.props.urls.panel_votaciones,
+  only: ["votaciones", "paginacion", "consulta"],
+  consulta: () => props.consulta,
+  paginacion: () => props.paginacion,
+  filtros: ["estado"],
+  filtrosTexto: [],
+})
 
 const cambiarEstado = (id: number, accion: "abrir" | "cerrar") => {
-  post(page.props.urls.panel_votaciones, { accion, id }, `estado-${id}`)
+  post(page.url, { accion, id }, `estado-${id}`)
 }
 </script>
 
@@ -77,69 +111,93 @@ const cambiarEstado = (id: number, accion: "abrir" | "cerrar") => {
   <PageHeader title="Votaciones" :back-href="page.props.urls.panel" admin />
   <MochilaBand />
   <main class="flex-1 px-[18px] pt-4 pb-8">
-    <div class="hidden overflow-x-auto lg:block">
-      <table class="w-full text-left text-sm">
-        <thead class="text-mut">
-          <tr>
-            <th class="p-3">Título</th>
-            <th class="p-3">Fechas</th>
-            <th class="p-3">Estado</th>
-            <th class="p-3">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="votacion in votaciones" :key="votacion.id" class="border-t border-ln">
-            <td class="p-3 font-serif text-base">{{ votacion.titulo }}</td>
-            <td class="p-3 text-mut">{{ votacion.resumen_fecha }}</td>
-            <td class="p-3"><StatusPill :estado="votacion.estado_efectivo" /></td>
-            <td class="flex flex-wrap gap-2 p-3">
-              <Link class="mini" :href="`/panel/votaciones/${votacion.id}/opciones`">Opciones</Link>
-              <button type="button" class="mini" @click="editar(votacion)">Editar</button>
-              <Button
-                size="mini"
-                variant="secondary"
-                :loading="isBusy(`estado-${votacion.id}`)"
-                :disabled="accionProcessing"
-                @click="cambiarEstado(votacion.id, votacion.estado === 'abierta' ? 'cerrar' : 'abrir')"
-              >
-                {{ votacion.estado === "abierta" ? "Cerrar" : "Abrir" }}
-              </Button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="lg:hidden">
-      <div
-        v-for="votacion in votaciones"
-        :key="votacion.id"
-        class="my-2.5 flex flex-col gap-2 rounded-2xl border border-ln bg-linear-to-[160deg] from-s2 to-s1 px-3.5 py-3"
-      >
-        <div>
-          <b class="block font-serif text-[17px] font-semibold">{{ votacion.titulo }}</b>
-          <small class="text-mut">{{ votacion.resumen_fecha }}</small>
-          <StatusPill :estado="votacion.estado_efectivo" />
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <Link class="mini" :href="`/panel/votaciones/${votacion.id}/opciones`">Opciones</Link>
-          <button type="button" class="mini" @click="editar(votacion)">Editar</button>
-          <Button
-            size="mini"
-            variant="secondary"
-            :loading="isBusy(`estado-${votacion.id}`)"
-            :disabled="accionProcessing"
-            @click="cambiarEstado(votacion.id, votacion.estado === 'abierta' ? 'cerrar' : 'abrir')"
-          >
-            {{ votacion.estado === "abierta" ? "Cerrar" : "Abrir" }}
-          </Button>
-        </div>
+    <div class="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div class="barra-listado min-w-0 flex-1">
+        <input
+          :value="q"
+          class="field barra-filtro"
+          type="search"
+          placeholder="Buscar"
+          aria-label="Buscar"
+          @input="buscar(($event.target as HTMLInputElement).value)"
+        />
+        <SelectField
+          class="barra-filtro"
+          aria-label="Filtrar por estado"
+          :model-value="consulta.filtros.estado ?? ''"
+          :options="filtroEstado"
+          @update:model-value="(valor) => filtrar('estado', valor)"
+        />
+      </div>
+      <div class="flex shrink-0 flex-wrap gap-2">
+        <a class="mini" :href="hrefExportar(page.props.urls.panel_votaciones_exportar, 'csv')">CSV</a>
+        <a class="mini" :href="hrefExportar(page.props.urls.panel_votaciones_exportar, 'xlsx')">Excel</a>
       </div>
     </div>
+    <DataTable
+      class="mt-4"
+      :value="votaciones"
+      lazy
+      paginator
+      data-key="id"
+      scrollable
+      removable-sort
+      table-style="min-width: 860px"
+      :rows="paginacion.per_page"
+      :first="first"
+      :total-records="paginacion.count"
+      :rows-per-page-options="[10, 25, 50]"
+      :loading="cargando"
+      :sort-field="sortField"
+      :sort-order="sortOrder"
+      current-page-report-template="{first}–{last} de {totalRecords}"
+      paginator-template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+      @page="onPage"
+      @sort="onSort"
+    >
+      <template #empty>No hay resultados.</template>
+      <Column field="titulo" header="Título" sortable>
+        <template #body="{ data }">
+          <span class="font-serif">{{ data.titulo }}</span>
+        </template>
+      </Column>
+      <Column field="categoria" header="Categoría" sortable>
+        <template #body="{ data }">{{ data.categoria_nombre }}</template>
+      </Column>
+      <Column field="fecha_inicio" header="Fechas" sortable>
+        <template #body="{ data }">{{ data.resumen_fecha }}</template>
+      </Column>
+      <Column field="estado" header="Estado" sortable>
+        <template #body="{ data }">
+          <StatusPill :estado="data.estado_efectivo" />
+        </template>
+      </Column>
+      <Column field="opciones_count" header="Opciones">
+        <template #body="{ data }">{{ data.opciones_count }}</template>
+      </Column>
+      <Column header="Acciones">
+        <template #body="{ data }">
+          <div class="flex flex-wrap gap-2">
+            <Link class="mini" :href="`${page.props.urls.panel_votaciones}/${data.id}/opciones`">Opciones</Link>
+            <button type="button" class="mini" @click="editar(data)">Editar</button>
+            <Button
+              size="mini"
+              variant="secondary"
+              :loading="isBusy(`estado-${data.id}`)"
+              :disabled="accionProcessing"
+              @click="cambiarEstado(data.id, data.estado === 'abierta' ? 'cerrar' : 'abrir')"
+            >
+              {{ data.estado === "abierta" ? "Cerrar" : "Abrir" }}
+            </Button>
+          </div>
+        </template>
+      </Column>
+    </DataTable>
     <Button class="mt-4" @click="mostrar = !mostrar">
       <Icon name="plus" :size="18" />
       Nueva votación
     </Button>
-    <form v-if="mostrar" class="mt-4 grid gap-3" @submit.prevent="form.post(page.props.urls.panel_votaciones)">
+    <form v-if="mostrar" class="mt-4 grid gap-3" @submit.prevent="form.post(page.url)">
       <FormField compact label="Categoría" for-id="votacion-categoria">
         <SelectField
           id="votacion-categoria"

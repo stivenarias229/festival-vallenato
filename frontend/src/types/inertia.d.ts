@@ -23,9 +23,12 @@ export interface SharedUrls {
   panel: string
   panel_categorias: string
   panel_votaciones: string
+  panel_votaciones_exportar: string
   panel_usuarios: string
+  panel_usuarios_exportar: string
   panel_resultados: string
   panel_actividad: string
+  panel_actividad_exportar: string
 }
 
 export interface SharedProps {
