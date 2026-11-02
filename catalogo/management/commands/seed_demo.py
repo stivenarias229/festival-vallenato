@@ -71,7 +71,7 @@ class Command(BaseCommand):
                     "estado": estado,
                     "reglas": (
                         "Solo puedes votar mientras la votación esté abierta.\n"
-                        "Un voto por votación (pendiente de validación, P-03).\n"
+                        "Un voto por votación.\n"
                         "Un voto confirmado no se puede cambiar.\n"
                         "Los resultados se publican según la configuración del Festival (P-04)."
                     ),

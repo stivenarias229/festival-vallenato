@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.urls import NoReverseMatch, reverse
 
@@ -33,6 +34,12 @@ def flash_compartido(request):
         else:
             payload["info"] = str(message)
     return payload
+
+
+def turnstile_compartido():
+    return {
+        "site_key": getattr(settings, "TURNSTILE_SITE_KEY", "") or "",
+    }
 
 
 def urls_compartidas(_request):

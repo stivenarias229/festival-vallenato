@@ -70,7 +70,6 @@ class Votacion(models.Model):
         choices=Visibilidad.choices,
         default=Visibilidad.INTERNOS,
     )
-    # PENDIENTE DE VALIDACIÓN (P-03)
     limite_votos_por_usuario = models.PositiveSmallIntegerField(default=1)
 
     class Meta:

@@ -84,7 +84,11 @@ def ingresar(request):
             registrar_fallo_login(email)
         errors = {key: values[0] for key, values in form.errors.items()}
         if form.non_field_errors() and "password" not in errors:
-            errors["password"] = form.non_field_errors()[0]
+            mensaje = form.non_field_errors()[0]
+            if "captcha" in mensaje.lower():
+                errors["captcha"] = mensaje
+            else:
+                errors["password"] = mensaje
     return render(
         request,
         "Auth/Ingresar",

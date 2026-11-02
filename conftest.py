@@ -8,11 +8,17 @@ from cuentas.models import Usuario
 
 
 @pytest.fixture(autouse=True)
-def _entorno_pruebas(settings):
+def _entorno_pruebas(settings, monkeypatch):
     settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     settings.LOGIN_MAX_INTENTOS = 5
     settings.LOGIN_BLOQUEO_MINUTOS = 15
+    settings.TURNSTILE_SITE_KEY = "test-site-key"
+    settings.TURNSTILE_SECRET_KEY = "test-secret-key"
+    settings.SESSION_INACTIVITY_MINUTES = 25
+    settings.SESSION_COOKIE_AGE = 25 * 60
+    settings.SESSION_SAVE_EVERY_REQUEST = True
+    monkeypatch.setattr("cuentas.forms.captcha_ok", lambda request: True)
 
 
 @pytest.fixture

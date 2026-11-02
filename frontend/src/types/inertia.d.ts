@@ -31,12 +31,17 @@ export interface SharedUrls {
   panel_actividad_exportar: string
 }
 
+export interface TurnstileShared {
+  site_key: string
+}
+
 export interface SharedProps {
   auth: {
     user: AuthUser | null
   }
   flash: FlashMessages
   urls: SharedUrls
+  turnstile: TurnstileShared
   errors?: Record<string, string | string[]>
 }
 

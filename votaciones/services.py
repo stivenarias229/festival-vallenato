@@ -36,7 +36,6 @@ def emitir_voto(usuario: Usuario, votacion: Votacion, opcion: Opcion) -> Voto:
         if not es_elegible(votante, votacion):
             raise VotoError("No eres elegible para esta votación.", "no_elegible")
 
-        # PENDIENTE DE VALIDACIÓN (P-03)
         emitidos = Voto.objects.filter(usuario=votante, votacion=votacion).count()
         if emitidos >= votacion.limite_votos_por_usuario:
             raise VotoError("Ya alcanzaste el límite de votos en esta votación.", "limite")

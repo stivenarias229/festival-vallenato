@@ -1,8 +1,11 @@
 import re
+from datetime import timedelta
 
 import pytest
+from django.contrib.sessions.models import Session
 from django.core import mail
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
@@ -103,6 +106,49 @@ def test_throttle_de_login(client, usuario_votante, settings):
         HTTP_X_INERTIA="true",
     )
     assert "Demasiados intentos" in str(response.json()["props"]["errors"])
+
+
+@pytest.mark.django_db
+def test_login_rechaza_captcha_invalido(client, usuario_votante, monkeypatch):
+    monkeypatch.setattr("cuentas.forms.captcha_ok", lambda request: False)
+    response = client.post(
+        reverse("ingresar"),
+        {
+            "email": usuario_votante.email,
+            "password": "ClaveSegura2027!",
+            "cf-turnstile-response": "token-malo",
+        },
+        HTTP_X_INERTIA="true",
+        HTTP_X_INERTIA_VERSION="1",
+    )
+    assert response.status_code == 200
+    errors = response.json()["props"]["errors"]
+    assert "captcha" in errors
+    assert "captcha" in errors["captcha"].lower()
+
+
+@pytest.mark.django_db
+def test_sesion_expira_por_inactividad(client, usuario_votante, settings):
+    settings.SESSION_COOKIE_AGE = 60
+    settings.SESSION_SAVE_EVERY_REQUEST = True
+    client.force_login(usuario_votante)
+    session_key = client.session.session_key
+    assert session_key
+    Session.objects.filter(session_key=session_key).update(
+        expire_date=timezone.now() - timedelta(seconds=1)
+    )
+    response = client.get(reverse("panel"), follow=False)
+    assert response.status_code == 302
+    assert reverse("ingresar") in response.url
+
+
+def test_sesion_inactividad_alineada_con_cookie(settings):
+    settings.SESSION_INACTIVITY_MINUTES = 25
+    settings.SESSION_COOKIE_AGE = settings.SESSION_INACTIVITY_MINUTES * 60
+    settings.SESSION_SAVE_EVERY_REQUEST = True
+    assert settings.SESSION_COOKIE_AGE == 1500
+    assert settings.SESSION_SAVE_EVERY_REQUEST is True
+
 
 
 @pytest.mark.django_db

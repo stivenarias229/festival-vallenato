@@ -1,7 +1,12 @@
 from inertia import share
 
 from web.json_body import cargar_json_en_post
-from web.share import flash_compartido, urls_compartidas, usuario_compartido
+from web.share import (
+    flash_compartido,
+    turnstile_compartido,
+    urls_compartidas,
+    usuario_compartido,
+)
 
 
 class InertiaJsonMiddleware:
@@ -25,5 +30,6 @@ class InertiaShareMiddleware:
             auth={"user": usuario_compartido(request)},
             flash=flash_compartido(request),
             urls=urls_compartidas(request),
+            turnstile=turnstile_compartido(),
         )
         return self.get_response(request)

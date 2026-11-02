@@ -1,8 +1,6 @@
 from django.conf import settings
 from django.core.cache import cache
 
-# PENDIENTE DE VALIDACIÓN (RNF-03)
-
 
 def _clave(identificador: str) -> str:
     return f"login-intentos:{identificador.lower()}"
