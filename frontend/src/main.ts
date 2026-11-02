@@ -1,8 +1,12 @@
 import { createInertiaApp } from "@inertiajs/vue3"
+import PrimeVue from "primevue/config"
 import { createApp, h, type DefineComponent } from "vue"
 import "vite/modulepreload-polyfill"
 import "./style.css"
 import AppLayout from "@/layouts/AppLayout.vue"
+import { opcionesPrimeVue } from "@/primevue"
+
+document.documentElement.classList.add("app-dark")
 
 document.addEventListener("DOMContentLoaded", () => {
   createInertiaApp({
@@ -25,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return page
     },
     setup({ el, App, props, plugin }) {
-      createApp({ render: () => h(App, props) }).use(plugin).mount(el)
+      createApp({ render: () => h(App, props) }).use(plugin).use(PrimeVue, opcionesPrimeVue).mount(el)
     },
   })
 })

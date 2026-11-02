@@ -1,0 +1,19 @@
+---
+description: Toda interfaz nueva o tocada debe verse y usarse bien en móvil, tablet y escritorio
+alwaysApply: true
+---
+
+# Interfaz responsive
+
+Cualquier cambio de UI, layout, tabla, barra, formulario o componente se
+verifica en móvil (~390px), tablet (~768px) y escritorio. No se da por
+terminado un ajuste visual que solo se vio en una pantalla ancha.
+
+- Los controles no se desbordan en horizontal. Si no caben, se apilan o
+  envuelven; no se usa `min-width` fijo que empuje fuera del viewport.
+- En columna, los campos no crecen a lo alto. Buscar, selects e inputs de
+  filtro mantienen la altura del campo (52px) en cualquier ancho.
+- `flex-grow` en un `flex-col` estira la altura: no aplicarlo a inputs.
+- Las tablas del panel ya hacen scroll horizontal; la barra de filtros,
+  botones y paginador deben caber o envolverse sin ese truco.
+- Probar en el navegador el viewport estrecho, no solo el escritorio.

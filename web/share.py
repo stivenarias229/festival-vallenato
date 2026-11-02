@@ -46,7 +46,10 @@ def urls_compartidas(_request):
         "panel": _reverse("panel", "/panel"),
         "panel_categorias": _reverse("panel_categorias", "/panel/categorias"),
         "panel_votaciones": _reverse("panel_votaciones", "/panel/votaciones"),
+        "panel_votaciones_exportar": _reverse("panel_votaciones_exportar", "/panel/votaciones/exportar"),
         "panel_usuarios": _reverse("panel_usuarios", "/panel/usuarios"),
+        "panel_usuarios_exportar": _reverse("panel_usuarios_exportar", "/panel/usuarios/exportar"),
         "panel_resultados": _reverse("panel_resultados", "/panel/resultados"),
         "panel_actividad": _reverse("panel_actividad", "/panel/actividad"),
+        "panel_actividad_exportar": _reverse("panel_actividad_exportar", "/panel/actividad/exportar"),
     }

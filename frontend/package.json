@@ -14,7 +14,9 @@
     "@fontsource/fraunces": "^5.3.0",
     "@fontsource/manrope": "^5.3.0",
     "@inertiajs/vue3": "^3.7.1",
+    "@primevue/themes": "^4.5.4",
     "@tailwindcss/vite": "^4.3.3",
+    "primevue": "^4.5.5",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.42"
   },
