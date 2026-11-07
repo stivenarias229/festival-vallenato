@@ -17,6 +17,8 @@
 | Confirmar | `/votaciones/<id>/confirmar` | `votaciones.views.confirmar` | `Votaciones/Confirmar` | RF-04, RF-14 |
 | Votar | `POST /votaciones/<id>/votar` | `votaciones.views.votar` | redirect | CU-04, RB-01–04, RB-12 |
 | Gracias | `/votaciones/<id>/gracias` | `votaciones.views.gracias` | `Votaciones/Gracias` | RF-15, RF-10 |
+| Mis votos | `/mis-votos` | `votaciones.views.mis_votos` | `Votaciones/MisVotos` | CPM-07 |
+| API categorías | `GET /api/categorias/` | `catalogo.views.api_categorias` | JSON | CPM-10 |
 | Resultados públicos | `/votaciones/<id>/resultados` | `resultados.views.publicos` | `Resultados/Publicos` | CU-05, RF-10, RB-05 |
 | Panel | `/panel` | `panel.views.inicio` | `Panel/Inicio` | RF-16 |
 | Gestión categorías | `/panel/categorias` | `panel.views.categorias` | `Panel/Categorias` | RF-05, RF-06, CU-06 |

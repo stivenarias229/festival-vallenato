@@ -13,6 +13,11 @@ const items = computed(() => [
   { href: urls.value.inicio, label: "Inicio", match: ["/"] },
   { href: urls.value.categorias, label: "Votar", match: ["/categorias", "/votaciones"] },
   {
+    href: user.value ? urls.value.mis_votos : urls.value.ingresar,
+    label: "Mis votos",
+    match: ["/mis-votos"],
+  },
+  {
     href: user.value ? urls.value.salir : urls.value.ingresar,
     label: user.value ? "Cerrar sesión" : "Cuenta",
     match: ["/ingresar", "/registro"],

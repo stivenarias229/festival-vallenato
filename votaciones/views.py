@@ -13,6 +13,40 @@ from .services import VotoError, emitir_voto
 
 
 @login_required
+def mis_votos(request):
+    votos = (
+        Voto.objects.filter(usuario=request.user)
+        .select_related("opcion", "votacion__categoria")
+        .order_by("-fecha_hora")
+    )
+    return render(
+        request,
+        "Votaciones/MisVotos",
+        {
+            "votos": [
+                {
+                    "id": voto.pk,
+                    "fecha_hora": voto.fecha_hora.isoformat(),
+                    "categoria": {
+                        "id": voto.votacion.categoria_id,
+                        "nombre": voto.votacion.categoria.nombre,
+                    },
+                    "votacion": {
+                        "id": voto.votacion_id,
+                        "titulo": voto.votacion.titulo,
+                    },
+                    "opcion": {
+                        "id": voto.opcion_id,
+                        "nombre": voto.opcion.nombre,
+                    },
+                }
+                for voto in votos
+            ],
+        },
+    )
+
+
+@login_required
 def confirmar(request, votacion_id):
     votacion = get_object_or_404(Votacion, pk=votacion_id)
     opcion_id = request.GET.get("opcion")

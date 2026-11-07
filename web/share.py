@@ -49,6 +49,7 @@ def urls_compartidas(_request):
         "ingresar": _reverse("ingresar", "/ingresar"),
         "salir": _reverse("salir", "/salir"),
         "categorias": _reverse("categorias", "/categorias"),
+        "mis_votos": _reverse("mis_votos", "/mis-votos"),
         "recuperar": _reverse("recuperar", "/recuperar"),
         "panel": _reverse("panel", "/panel"),
         "panel_categorias": _reverse("panel_categorias", "/panel/categorias"),

@@ -25,8 +25,18 @@ const items = computed(() => {
   }
   return [
     { href: urls.value.inicio, icon: "home", label: "Inicio", match: ["/"] },
-    { href: urls.value.categorias, icon: "ticket", label: "Votar", match: ["/categorias"] },
-    { href: urls.value.categorias, icon: "vote", label: "Votaciones", match: ["/votaciones"] },
+    {
+      href: urls.value.categorias,
+      icon: "ticket",
+      label: "Votar",
+      match: ["/categorias", "/votaciones"],
+    },
+    {
+      href: user.value ? urls.value.mis_votos : urls.value.ingresar,
+      icon: "vote",
+      label: "Mis votos",
+      match: ["/mis-votos"],
+    },
     {
       href: user.value ? urls.value.salir : urls.value.ingresar,
       icon: "user",

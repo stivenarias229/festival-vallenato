@@ -1,12 +1,52 @@
+from django.db.models import Prefetch
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from inertia import render
 
-from .models import Categoria, Edicion, Votacion
+from .models import Categoria, Edicion, Opcion, Votacion
 from .serializers import categoria_payload, opcion_payload, votacion_payload
 
 
 def _edicion_activa():
     return Edicion.objects.filter(estado=Edicion.Estado.ACTIVA).order_by("-anio").first()
+
+
+def api_categorias(_request):
+    """GET /api/categorias/ — categorías con votaciones y opciones (entrega Eje 3)."""
+    edicion = _edicion_activa()
+    categorias = []
+    if edicion:
+        queryset = (
+            edicion.categorias.filter(estado=Categoria.Estado.ACTIVA)
+            .prefetch_related(
+                Prefetch(
+                    "votaciones",
+                    queryset=Votacion.objects.exclude(estado=Votacion.Estado.BORRADOR)
+                    .prefetch_related(
+                        Prefetch(
+                            "opciones",
+                            queryset=Opcion.objects.order_by("orden", "id"),
+                        )
+                    )
+                    .order_by("id"),
+                )
+            )
+            .order_by("id")
+        )
+        for categoria in queryset:
+            categorias.append(
+                {
+                    **categoria_payload(categoria),
+                    "votaciones": [
+                        {
+                            **votacion_payload(votacion),
+                            "opciones": [opcion_payload(opcion) for opcion in votacion.opciones.all()],
+                        }
+                        for votacion in categoria.votaciones.all()
+                    ],
+                }
+            )
+    return JsonResponse({"categorias": categorias})
 
 
 def inicio(request):

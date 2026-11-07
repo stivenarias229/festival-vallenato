@@ -19,6 +19,7 @@ export interface SharedUrls {
   ingresar: string
   salir: string
   categorias: string
+  mis_votos: string
   recuperar: string
   panel: string
   panel_categorias: string

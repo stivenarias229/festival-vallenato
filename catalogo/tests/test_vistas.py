@@ -29,3 +29,27 @@ def test_votaciones_filtradas_por_categoria(client, catalogo_abierto):
     )
     titulos = [item["titulo"] for item in response.json()["props"]["votaciones"]]
     assert "Canción favorita" in titulos
+
+
+@pytest.mark.django_db
+def test_api_categorias_json_con_votaciones_y_opciones(client, catalogo_abierto):
+    response = client.get(reverse("api_categorias"))
+    assert response.status_code == 200
+    assert response["Content-Type"].startswith("application/json")
+    payload = response.json()
+    assert "edicion" not in payload
+    assert "categorias" in payload
+    categoria = payload["categorias"][0]
+    assert categoria["nombre"] == "Acordeón"
+    assert "votaciones" in categoria
+    votacion = categoria["votaciones"][0]
+    assert votacion["titulo"] == "Canción favorita"
+    nombres = [opcion["nombre"] for opcion in votacion["opciones"]]
+    assert nombres == ["Opción A", "Opción B"]
+
+
+@pytest.mark.django_db
+def test_api_categorias_vacia_sin_edicion_activa(client, db):
+    response = client.get(reverse("api_categorias"))
+    assert response.status_code == 200
+    assert response.json() == {"categorias": []}

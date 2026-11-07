@@ -31,3 +31,30 @@ def test_sin_confirmacion_no_registra(client, usuario_votante, catalogo_abierto)
         {"opcion_id": catalogo_abierto["opcion"].pk},
     )
     assert Voto.objects.filter(usuario=usuario_votante).count() == 0
+
+
+@pytest.mark.django_db
+def test_mis_votos_pide_login(client):
+    response = client.get(reverse("mis_votos"))
+    assert response.status_code == 302
+    assert reverse("ingresar") in response.url
+
+
+@pytest.mark.django_db
+def test_mis_votos_lista_participacion(client, usuario_votante, catalogo_abierto):
+    client.force_login(usuario_votante)
+    vacio = client.get(reverse("mis_votos"), HTTP_X_INERTIA="true")
+    assert vacio.json()["component"] == "Votaciones/MisVotos"
+    assert vacio.json()["props"]["votos"] == []
+
+    Voto.objects.create(
+        usuario=usuario_votante,
+        votacion=catalogo_abierto["votacion"],
+        opcion=catalogo_abierto["opcion"],
+    )
+    response = client.get(reverse("mis_votos"), HTTP_X_INERTIA="true")
+    votos = response.json()["props"]["votos"]
+    assert len(votos) == 1
+    assert votos[0]["categoria"]["nombre"] == "Acordeón"
+    assert votos[0]["votacion"]["titulo"] == "Canción favorita"
+    assert votos[0]["opcion"]["nombre"] == "Opción A"

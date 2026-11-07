@@ -44,6 +44,7 @@ const page = usePage()
         Ver resultados
       </Button>
       <Button :href="page.props.urls.categorias">Votar en otra categoría</Button>
+      <Button variant="secondary" :href="page.props.urls.mis_votos">Ver mis votos</Button>
       <Button variant="secondary" :href="page.props.urls.inicio">Volver al inicio</Button>
     </div>
   </main>
